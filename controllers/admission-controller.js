@@ -1,6 +1,7 @@
 var express = require('express');
 var Admission = require('../models').Admission;
 var CommonCntrl = require('./common-controller');
+var EnquiryCntrl = require('./enquiry-controller');
 
 var config = {};
 
@@ -41,6 +42,37 @@ config.required_keys = [
 var CommonCntrl_obj = new CommonCntrl(config);
 
 var insert = (req, res, next) => {
+    
+    if (typeof req.body.enqId != "undefined" && req.body.enqId != '') {
+
+        EnquiryCntrl.isEnquiryIdExistsAlready(req.body.enqId, ( res1) => {
+    
+            if (res1.result) {
+    
+                isEnquiryIdAssignedAlready(req.body.enqId, ( res2 ) => {
+    
+                    if (res2.result) {
+        
+                        res.status(200).send({ err: ['EnquiryId is already assigned!'] });
+                    } else {
+        
+                        insert_admission(req, res);
+                    }
+                });
+    
+            } else {
+    
+                res.status(200).send({ err: ['Invalid enquiry ID!'] });
+            }
+        });
+    } else {
+
+        insert_admission(req, res);
+    }
+
+};
+
+var insert_admission = (req, res) => {
 
     var in_data = {};
     in_data = CommonCntrl_obj.check_inputs(req.body, true);
@@ -54,19 +86,16 @@ var insert = (req, res, next) => {
     } else {
 
         Admission.build(in_data.data).save()
-            .then((result) => {
+        .then((result) => {
 
-                res.status(200).send({ result: result, in_data: in_data });
-            })
-            .catch((error) => {
+            res.status(200).send({ result: result, in_data: in_data });
+        })
+        .catch((error) => {
 
-                console.log('err => ');
-                console.log(error);
-
-                res.status(200).send({ err: error });
-            });
+            res.status(200).send({ err: error });
+        });
     }
-};
+}
 
 var update = (req, res, next) => {
 
@@ -209,6 +238,25 @@ var fetchById = (req, res, next) => {
         });
 };
 
+var isEnquiryIdAssignedAlready = (id, cb) => {
+
+    Admission.find({ where: { enqId: id } })
+        .then((result) => {
+
+            if (result === null) {
+
+                cb( { err: '', result: false } );
+            } else {
+
+                cb( { err: '', result: true } );
+            }
+        })
+        .catch((error) => {
+
+            return { err: error };
+        });
+};
+
 module.exports = {
     insert: insert,
     update: update,
@@ -216,4 +264,5 @@ module.exports = {
     fetchById: fetchById,
     hardDelete: hard_delete,
     softDelete: soft_delete
+    
 };
