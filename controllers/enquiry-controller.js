@@ -9,6 +9,7 @@ config.err_messages = {
     'firstName': "First Name",
     'lastName': "Last Name",
     'fatherName': "Father Name",
+    'enqDate': "Enquiry Date",
     'courseId': "Course Id"
 };
 
@@ -54,7 +55,6 @@ var insert = (req, res, next) => {
 
         res.status(200).send({ in_data });
     } else {
-
         Enquiry.build(in_data.data).save()
             .then((result) => {
 
@@ -211,11 +211,31 @@ var fetchById = (req, res, next) => {
         });
 };
 
+var isEnquiryIdExistsAlready = ( id, cb ) => {
+
+    Enquiry.find({ where: { id: id } })
+        .then((result) => {
+
+            if (result === null) {
+
+                cb( { err:"", result: false } );
+            } else {
+
+                cb( { err: '', result: true } );
+            }
+        })
+        .catch((error) => {
+
+            cb( { err: error } );            
+        });
+};
+
 module.exports = {
     insert: insert,
     update: update,
     fetchAll: fetchAll,
     fetchById: fetchById,
     hardDelete: hard_delete,
-    softDelete: soft_delete
+    softDelete: soft_delete,
+    isEnquiryIdExistsAlready: isEnquiryIdExistsAlready
 };
