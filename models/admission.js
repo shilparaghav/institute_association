@@ -42,8 +42,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   Admission.associate = function (models) {
     // associations can be defined here
-    Admission.hasOne(models.Course);  //each admission has one course
-    Admission.hasOne(models.Fees); // each admission one has one fees
+    // Admission.hasOne(models.Course);  //each admission has one course
+    // Admission.hasOne(models.Fees); // each admission one has one fees
 
 
   };
