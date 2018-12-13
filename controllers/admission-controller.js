@@ -1,7 +1,11 @@
 var express = require('express');
+const Sequelize = require('sequelize');
+
+const Op = Sequelize.Op;
 var Admission = require('../models').Admission;
 var CommonCntrl = require('./common-controller');
 var EnquiryCntrl = require('./enquiry-controller');
+
 
 var config = {};
 
@@ -41,6 +45,8 @@ config.required_keys = [
 
 var CommonCntrl_obj = new CommonCntrl(config);
 
+
+
 var insert = (req, res, next) => {
     
     if (typeof req.body.enqId != "undefined" && req.body.enqId != '') {
@@ -72,6 +78,8 @@ var insert = (req, res, next) => {
 
 };
 
+
+
 var insert_admission = (req, res) => {
 
     var in_data = {};
@@ -84,7 +92,7 @@ var insert_admission = (req, res) => {
 
         res.status(200).send({ in_data });
     } else {
-
+        
         Admission.build(in_data.data).save()
         .then((result) => {
 
@@ -97,42 +105,86 @@ var insert_admission = (req, res) => {
     }
 }
 
-var update = (req, res, next) => {
 
-    var id = req.params.id;
+//correct code
 
-    Admission.find({ where: { id: id } })
-        .then((result) => {
+// var update = (req, res, next) => {
 
-            if (result === null) {
+//     if (typeof req.body.enqId != "undefined" && req.body.enqId != '') {
 
-                res.status(200).send({ err: ["Record not found!"] });
-            } else {
+//         EnquiryCntrl.isEnquiryIdExistsAlready(req.body.enqId, (res1) => {
 
-                var in_data = {};
-                var in_data = CommonCntrl_obj.check_inputs(req.body);
+//             if (res1.result) {
 
-                if (in_data.err.length) {
-                    res.status(200).send({ in_data });
-                } else {
+//                 isEnquiryIdAssignedAlready(req.body.enqId, (res2) => {
 
-                    Admission.update(in_data.data, { where: { id: id } })
-                        .then((result) => {
+//                     if (res2.result) {
+//                         console.log("if--------");
 
-                            res.status(200).send({ result: result, in_data: in_data });
-                        })
-                        .catch((error) => {
+//                         res.status(200).send({ err: ['EnquiryId is already assigned!'] });
+//                     } else {
+//                         console.log("else---------")
 
-                            res.status(200).send({ err: error });
-                        });
-                }
-            }
-        })
-        .catch((error) => {
+//                         update_Admission(req, res);
+//                     }
+//                 });
 
-            res.status(200).send({ err: error });
-        });
-};
+//             } else {
+
+//                 res.status(200).send({ err: ['Invalid enquiry ID!'] });
+//             }
+//         });
+//     } else {
+
+//         update_Admission(req, res);
+//     }
+// }
+
+
+
+
+
+
+
+
+
+
+    // var id = req.params.id;
+
+    // Admission.find({ where: { id: id } })
+    //     .then((result) => {
+
+    //         if (result === null) {
+
+    //             res.status(200).send({ err: ["Record not found!"] });
+    //         } else {
+
+    //             var in_data = {};
+    //             var in_data = CommonCntrl_obj.check_inputs(req.body);
+
+    //             if (in_data.err.length) {
+    //                 res.status(200).send({ in_data });
+    //             } else {
+                   
+    //                 Admission.update(in_data.data, { where: { id: id } })
+    //                     .then((result) => {
+
+    //                         res.status(200).send({ result: result, in_data: in_data });
+    //                     })
+    //                     .catch((error) => {
+
+    //                         res.status(200).send({ err: error });
+    //                     });
+    //             }
+    //         }
+    //     })
+    //     .catch((error) => {
+
+    //         res.status(200).send({ err: error });
+    //     });
+
+
+
 
 var soft_delete = (req, res, next) => {
 
@@ -257,12 +309,197 @@ var isEnquiryIdAssignedAlready = (id, cb) => {
         });
 };
 
+
+
+//var WrongEnquiryIdUpdate= (id, eId,cb)=>{
+
+// var EnquiryIdAssignmentCheck = (id,cb) => {
+
+//     EnquiryCntrl.findAll({ where: {id: id } })
+
+//     //EnquiryCntrl.findAll({where: {enqId: {[Op.ne]: eId} , id:id}})
+
+//         .then((result5)=>{
+
+//             if(result5 === null){
+
+//                 cb({err: "",result: false})
+//             }else{
+//                 cb({err: "", result: true});
+//             }
+//         })
+//         .catch((error)=>{
+//             return {err:error};
+//         });
+
+
+//         };
+
+
+
+
+
+// correct code
+
+
+// var update_Admission= (req,res,next)=>{
+
+//     var id = req.params.id;
+
+//     Admission.find({ where: { id: id } })
+//         .then((result) => {
+
+//             if (result === null) {
+
+//                 res.status(200).send({ err: ["Record not found!"] });
+//             } else {
+
+//                 var in_data = {};
+//                 var in_data = CommonCntrl_obj.check_inputs(req.body);
+
+//                 if (in_data.err.length) {
+//                     res.status(200).send({ in_data });
+//                 } else {
+
+//                     Admission.update(in_data.data, { where: { id: id } })
+//                         .then((result) => {
+
+//                             res.status(200).send({ result: result, in_data: in_data });
+//                         })
+//                         .catch((error) => {
+
+//                             res.status(200).send({ err: error });
+//                         });
+//                 }
+//             }
+//         })
+//         .catch((error) => {
+
+//             res.status(200).send({ err: error });
+//         });
+//     };
+
+
+
+
+
+
+
+
+
+
+    // EnquiryCntrl.isEnquiryIdExistsAlready(req.body.enqId,(res3)=>{
+
+    //     if(res3.result){
+
+    //         //WrongEnquiryIdUpdate(id,eId,(result6)=>{
+    //         // EnquiryIdAssignmentCheck(id,(result6) => {
+
+    //         //     if (result6.result){
+
+    //         //         res.status(200).send({ err: ['............'] });  
+    //         //     }else{
+    //         //         insert_admission(req, res);
+    //         //     }
+    //         // })
+    //             isEnquiryIdAssignedAlready(req.body.enqId, (res4) => {
+
+    //                 if (res4.result) {
+
+    //                     res.status(200).send({ err: ['EnquiryId is already assigned!'] });
+    //                 } else {
+    //                     update(req,res); 
+    //                 }
+            
+    //             });
+    // }else{
+    //         res.status(200).send(["Invalid Enquiry Id"]); 
+    //     }
+            
+    // });
+
+
+   // }
+
+
+
+
+var update_Admission = (req, res, next) => {
+
+    var id = req.params.id;
+
+    Admission.findAll({ where:{ id: id } })
+        .then((result) => {
+
+            if (result === null) {
+
+                res.status(200).send({ err: ["Record not found!"] });
+            } else {
+
+                var in_data = {};
+                var in_data = CommonCntrl_obj.check_inputs(req.body);
+
+                if (in_data.err.length) {
+                    res.status(200).send({ in_data });
+                } else {
+
+                    Admission.update(in_data.data, { where: { id: id } })
+                        .then((result) => {
+
+                            res.status(200).send({ result: result, in_data: in_data });
+                        })
+                        .catch((error) => {
+
+                            res.status(200).send({ err: error });
+                        });
+                }
+            }
+        })
+        .catch((error) => {
+
+            res.status(200).send({ err: error });
+        });
+    };
+
+
+
+var update = (req, res, next) => {
+
+    if (typeof req.body.enqId != "undefined" && req.body.enqId != '' && req.body.enqId != null ) {
+        
+        EnquiryCntrl.isEnquiryIdExistsAlready(req.body.enqId, (res1) => {
+
+            if (res1.result) {
+
+                isEnquiryIdAssignedAlready(req.body.enqId, (res2) => {
+
+                    if (res2.result) {
+
+                        res.status(200).send({ err: ['EnquiryId is already assigned!'] });
+
+                    } else {
+
+                        update_Admission(req, res);
+                    }
+                });
+
+            } else {
+                
+                res.status(200).send({ err: ['Invalid enquiry ID!'] });
+            }
+        });
+    } else {
+            update_Admission(req, res);
+        
+    }
+}
+
+
 module.exports = {
     insert: insert,
     update: update,
     fetchAll: fetchAll,
     fetchById: fetchById,
     hardDelete: hard_delete,
-    softDelete: soft_delete
-    
+    softDelete: soft_delete 
 };

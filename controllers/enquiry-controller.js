@@ -1,4 +1,5 @@
 var express = require('express');
+var CourseCntrl = require("./course-controller");
 var Enquiry = require('../models').Enquiry;
 var CommonCntrl = require('./common-controller');
 
@@ -46,29 +47,41 @@ var CommonCntrl_obj = new CommonCntrl(config);
 var insert = (req, res, next) => {
 
     var in_data = {};
-    in_data = CommonCntrl_obj.check_inputs(req.body, true);
 
-    if (in_data.err.length > 0) {
+    CourseCntrl.checkIfCourseExists(req.body.courseId, (resu1) => {
 
-        res.status(200).send({ in_data });
-    } else if ((typeof in_data.err.err != "undefined") && (in_data.err.err.length > 0)) {
+        if (resu1.result) {
+            in_data = CommonCntrl_obj.check_inputs(req.body, true);
 
-        res.status(200).send({ in_data });
-    } else {
-        Enquiry.build(in_data.data).save()
-            .then((result) => {
+            if (in_data.err.length > 0) {
 
-                res.status(200).send({ result: result, in_data: in_data });
-            })
-            .catch((error) => {
+                res.status(200).send({ in_data });
+            } else if ((typeof in_data.err.err != "undefined") && (in_data.err.err.length > 0)) {
 
-                console.log('err => ');
-                console.log(error);
+                res.status(200).send({ in_data });
+            } else {
+                Enquiry.build(in_data.data).save()
+                    .then((result) => {
 
-                res.status(200).send({ err: error });
-            });
-    }
-};
+                        res.status(200).send({ result: result, in_data: in_data });
+                    })
+                    .catch((error) => {
+
+                        console.log(error);
+
+                        res.status(200).send({ err: error });
+                    });
+            }
+
+        }else{
+            res.status(200).send({err:"Invalid Course Id"})
+        }
+
+    });
+}
+
+
+    
 
 var update = (req, res, next) => {
 
@@ -190,13 +203,16 @@ var fetchAll = (req, res, next) => {
         });
 };
 
+
+
+
 var fetchById = (req, res, next) => {
 
     var id = req.params.id;
 
     Enquiry.find({ where: { id: id } })
         .then((result) => {
-
+            
             if (result === null) {
 
                 res.status(200).send({ err: ["Record not found!"] });
@@ -209,7 +225,11 @@ var fetchById = (req, res, next) => {
 
             res.status(200).send({ err: error });
         });
+        
+
 };
+
+
 
 var isEnquiryIdExistsAlready = ( id, cb ) => {
 
@@ -226,9 +246,11 @@ var isEnquiryIdExistsAlready = ( id, cb ) => {
         })
         .catch((error) => {
 
-            cb( { err: error } );            
+            cb( { err: error } );
         });
 };
+
+
 
 module.exports = {
     insert: insert,

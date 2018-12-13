@@ -207,11 +207,31 @@ var fetchById = (req, res, next) => {
         });
 };
 
+
+
+var checkIfCourseExists = (cId,cb)=>{
+
+   Course.find({ where:{ id:cId }})
+
+    .then((result1) => {
+
+        if (result1 == null){
+
+            cb({err:"Invalid course Id",result:false})
+
+        }else{
+            cb({err:"", result:true});
+        }
+
+    });
+};
+
 module.exports = {
     insert: insert,
     update: update,
     fetchAll: fetchAll,
     fetchById: fetchById,
     hardDelete: hard_delete,
-    softDelete: soft_delete
+    softDelete: soft_delete,
+    checkIfCourseExists: checkIfCourseExists
 };
