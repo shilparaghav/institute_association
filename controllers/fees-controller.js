@@ -1,4 +1,5 @@
 var express = require('express');
+var AdmissionCntrl= require("./admission-controller");
 var Fees = require('../models').Fees;
 var CommonCntrl = require('./common-controller');
 
@@ -35,7 +36,7 @@ config.required_keys = [
 
 var CommonCntrl_obj = new CommonCntrl(config);
 
-var insert = (req, res, next) => {
+var validate_insert= (req,res)=>{
 
     var in_data = {};
     in_data = CommonCntrl_obj.check_inputs(req.body, true);
@@ -61,7 +62,50 @@ var insert = (req, res, next) => {
                 res.status(200).send({ err: error });
             });
     }
-};
+
+    // isAdmissionIdExists(req.body.admissionId,(res9)=> {
+
+    //     if(res9.result){
+
+    //         isAdmissionIdAssignedAlready(req.body.admissionId,(res11)=>{
+
+    //             if(res11.result){
+    //                 res.status(200).send({err:["Admission Id assigned already"]});
+    //             }else{
+                   
+    //             }
+    //         }) 
+    //     } else{
+
+    //     }
+    // });
+
+    
+
+}
+
+var insert = (req, res, next) => {
+
+    AdmissionCntrl.isAdmissionIdExists(req.body.admissionId, (res9) => {
+
+        if(res9.result){
+
+            isAdmissionIdAssignedAlready(req.body.admissionId,(res11)=>{
+
+                if(res11.result){
+                    res.status(200).send({err:["Admission Id assigned already"]});
+                }else{
+                    validate_insert(req,res);
+                }
+            }) 
+        } else{
+            res.status(200).send({err:["Invalid Admission Id"]});
+
+        }
+    });
+
+   
+}
 
 var update = (req, res, next) => {
 
@@ -203,6 +247,22 @@ var fetchById = (req, res, next) => {
             res.status(200).send({ err: error });
         });
 };
+
+var isAdmissionIdAssignedAlready = (a_id, cb) => {
+
+    Fees.find({ where: { admissionId: a_id } })
+        .then((res10) => {
+
+            if (res10 == null) {
+
+                cb({ err: "", result: false });
+
+            } else {
+
+                cb({ err: "", result: true });
+            }
+        })
+}
 
 module.exports = {
     insert: insert,

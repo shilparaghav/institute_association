@@ -1,10 +1,14 @@
 var express = require('express');
-const Sequelize = require('sequelize');
+// const Sequelize = require('sequelize');
 
-const Op = Sequelize.Op;
+// const Op = Sequelize.Op;
+
+var CourseCntrl= require("./course-controller");
 var Admission = require('../models').Admission;
 var CommonCntrl = require('./common-controller');
 var EnquiryCntrl = require('./enquiry-controller');
+var Course = require("../models").Course;
+var Enquiry = require("../models").Enquiry;
 
 
 var config = {};
@@ -51,7 +55,7 @@ var insert = (req, res, next) => {
     
     if (typeof req.body.enqId != "undefined" && req.body.enqId != '') {
 
-        EnquiryCntrl.isEnquiryIdExistsAlready(req.body.enqId, ( res1) => {
+        EnquiryCntrl.isEnquiryIdExistsAlready(req.body.enqId, (res1) => {
     
             if (res1.result) {
     
@@ -60,27 +64,35 @@ var insert = (req, res, next) => {
                     if (res2.result) {
         
                         res.status(200).send({ err: ['EnquiryId is already assigned!'] });
-                    } else {
-        
-                        insert_admission(req, res);
-                    }
+                     } else {
+                        CourseCntrl.checkIfCourseExists(req.body.courseId, (res7) => {
+
+                            if (res7.result) {
+                                vaidate_insert(req, res);
+
+                            } else {
+                                res.status(200).send({ err: ["Invalid Course Id"] });
+
+                            }
+                        });
+                     }
                 });
     
             } else {
     
                 res.status(200).send({ err: ['Invalid enquiry ID!'] });
+               
             }
         });
     } else {
-
-        insert_admission(req, res);
+        vaidate_insert(req, res);
     }
+    
 
 };
 
 
-
-var insert_admission = (req, res) => {
+var vaidate_insert = (req, res) => {
 
     var in_data = {};
     in_data = CommonCntrl_obj.check_inputs(req.body, true);
@@ -104,85 +116,6 @@ var insert_admission = (req, res) => {
         });
     }
 }
-
-
-//correct code
-
-// var update = (req, res, next) => {
-
-//     if (typeof req.body.enqId != "undefined" && req.body.enqId != '') {
-
-//         EnquiryCntrl.isEnquiryIdExistsAlready(req.body.enqId, (res1) => {
-
-//             if (res1.result) {
-
-//                 isEnquiryIdAssignedAlready(req.body.enqId, (res2) => {
-
-//                     if (res2.result) {
-//                         console.log("if--------");
-
-//                         res.status(200).send({ err: ['EnquiryId is already assigned!'] });
-//                     } else {
-//                         console.log("else---------")
-
-//                         update_Admission(req, res);
-//                     }
-//                 });
-
-//             } else {
-
-//                 res.status(200).send({ err: ['Invalid enquiry ID!'] });
-//             }
-//         });
-//     } else {
-
-//         update_Admission(req, res);
-//     }
-// }
-
-
-
-
-
-
-
-
-
-
-    // var id = req.params.id;
-
-    // Admission.find({ where: { id: id } })
-    //     .then((result) => {
-
-    //         if (result === null) {
-
-    //             res.status(200).send({ err: ["Record not found!"] });
-    //         } else {
-
-    //             var in_data = {};
-    //             var in_data = CommonCntrl_obj.check_inputs(req.body);
-
-    //             if (in_data.err.length) {
-    //                 res.status(200).send({ in_data });
-    //             } else {
-                   
-    //                 Admission.update(in_data.data, { where: { id: id } })
-    //                     .then((result) => {
-
-    //                         res.status(200).send({ result: result, in_data: in_data });
-    //                     })
-    //                     .catch((error) => {
-
-    //                         res.status(200).send({ err: error });
-    //                     });
-    //             }
-    //         }
-    //     })
-    //     .catch((error) => {
-
-    //         res.status(200).send({ err: error });
-    //     });
-
 
 
 
@@ -273,8 +206,20 @@ var fetchById = (req, res, next) => {
 
     var id = req.params.id;
 
-    Admission.find({ where: { id: id } })
-        .then((result) => {
+    Admission.find({ 
+        include: [{
+                model: Course,
+                attributes:["courseName","fees"],
+                include: [
+                    {
+                        model: Enquiry,
+                        attributes: ["enqDate"],
+                        where:{id:id}
+                        
+                    }
+                ]
+        }], where: { id: id }
+         }).then((result) => {
 
             if (result === null) {
 
@@ -295,7 +240,7 @@ var isEnquiryIdAssignedAlready = (id, cb) => {
     Admission.find({ where: { enqId: id } })
         .then((result) => {
 
-            if (result === null) {
+            if (result == null) {
 
                 cb( { err: '', result: false } );
             } else {
@@ -308,120 +253,6 @@ var isEnquiryIdAssignedAlready = (id, cb) => {
             return { err: error };
         });
 };
-
-
-
-//var WrongEnquiryIdUpdate= (id, eId,cb)=>{
-
-// var EnquiryIdAssignmentCheck = (id,cb) => {
-
-//     EnquiryCntrl.findAll({ where: {id: id } })
-
-//     //EnquiryCntrl.findAll({where: {enqId: {[Op.ne]: eId} , id:id}})
-
-//         .then((result5)=>{
-
-//             if(result5 === null){
-
-//                 cb({err: "",result: false})
-//             }else{
-//                 cb({err: "", result: true});
-//             }
-//         })
-//         .catch((error)=>{
-//             return {err:error};
-//         });
-
-
-//         };
-
-
-
-
-
-// correct code
-
-
-// var update_Admission= (req,res,next)=>{
-
-//     var id = req.params.id;
-
-//     Admission.find({ where: { id: id } })
-//         .then((result) => {
-
-//             if (result === null) {
-
-//                 res.status(200).send({ err: ["Record not found!"] });
-//             } else {
-
-//                 var in_data = {};
-//                 var in_data = CommonCntrl_obj.check_inputs(req.body);
-
-//                 if (in_data.err.length) {
-//                     res.status(200).send({ in_data });
-//                 } else {
-
-//                     Admission.update(in_data.data, { where: { id: id } })
-//                         .then((result) => {
-
-//                             res.status(200).send({ result: result, in_data: in_data });
-//                         })
-//                         .catch((error) => {
-
-//                             res.status(200).send({ err: error });
-//                         });
-//                 }
-//             }
-//         })
-//         .catch((error) => {
-
-//             res.status(200).send({ err: error });
-//         });
-//     };
-
-
-
-
-
-
-
-
-
-
-    // EnquiryCntrl.isEnquiryIdExistsAlready(req.body.enqId,(res3)=>{
-
-    //     if(res3.result){
-
-    //         //WrongEnquiryIdUpdate(id,eId,(result6)=>{
-    //         // EnquiryIdAssignmentCheck(id,(result6) => {
-
-    //         //     if (result6.result){
-
-    //         //         res.status(200).send({ err: ['............'] });  
-    //         //     }else{
-    //         //         insert_admission(req, res);
-    //         //     }
-    //         // })
-    //             isEnquiryIdAssignedAlready(req.body.enqId, (res4) => {
-
-    //                 if (res4.result) {
-
-    //                     res.status(200).send({ err: ['EnquiryId is already assigned!'] });
-    //                 } else {
-    //                     update(req,res); 
-    //                 }
-            
-    //             });
-    // }else{
-    //         res.status(200).send(["Invalid Enquiry Id"]); 
-    //     }
-            
-    // });
-
-
-   // }
-
-
 
 
 var update_Admission = (req, res, next) => {
@@ -492,7 +323,30 @@ var update = (req, res, next) => {
             update_Admission(req, res);
         
     }
+
+    
 }
+
+var isAdmissionIdExists = (id,cb)=>{
+
+    Admission.find( {where:{ id : id }})
+
+        .then((res8)=>{
+
+            if(res8 == null){
+
+                cb({err:"",result:false});
+
+            }else{
+
+                cb({err:"",result:true})
+            }
+        });
+}
+
+
+
+ 
 
 
 module.exports = {
@@ -501,5 +355,8 @@ module.exports = {
     fetchAll: fetchAll,
     fetchById: fetchById,
     hardDelete: hard_delete,
-    softDelete: soft_delete 
+    softDelete: soft_delete,
+    isAdmissionIdExists : isAdmissionIdExists
+    
+
 };

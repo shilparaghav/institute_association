@@ -22,10 +22,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   Fees.associate = function (models) {
     // associations can be defined here
-
-
-
-
+    Fees.belongsTo(models.Admission,{ foreignKey: 'admissionId' });
   };
   return Fees;
 };
