@@ -26,7 +26,9 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   Enquiry.associate = function(models) {
     // associations can be defined here
-    // Enquiry.hasOne(models.Course);
+    Enquiry.belongsTo(models.Course, { foreignKey: 'courseId' });
+    Enquiry.hasOne(models.Admission, { foreignKey: 'enqId' });
+
   };
   return Enquiry;
 };

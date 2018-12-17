@@ -2,6 +2,7 @@ var express = require('express');
 var CourseCntrl = require("./course-controller");
 var Enquiry = require('../models').Enquiry;
 var CommonCntrl = require('./common-controller');
+var Course= require("../models").Course;
 
 
 var config = {};
@@ -50,32 +51,34 @@ var insert = (req, res, next) => {
 
     CourseCntrl.checkIfCourseExists(req.body.courseId, (resu1) => {
 
-        if (resu1.result) {
+        if(resu1.result){
+
             in_data = CommonCntrl_obj.check_inputs(req.body, true);
 
             if (in_data.err.length > 0) {
 
                 res.status(200).send({ in_data });
+
             } else if ((typeof in_data.err.err != "undefined") && (in_data.err.err.length > 0)) {
 
                 res.status(200).send({ in_data });
+
             } else {
+
                 Enquiry.build(in_data.data).save()
-                    .then((result) => {
-
-                        res.status(200).send({ result: result, in_data: in_data });
-                    })
-                    .catch((error) => {
-
-                        console.log(error);
-
-                        res.status(200).send({ err: error });
-                    });
+                .then((result) => {
+                    res.status(200).send({ result: result, in_data: in_data });
+                })
+                .catch((error) => {
+                    //console.log(error);
+                    res.status(200).send({ err: error });
+                });
             }
 
         }else{
-            res.status(200).send({err:"Invalid Course Id"})
+            res.status(200).send({err:"Invalid Course Id"});
         }
+
 
     });
 }
@@ -186,8 +189,8 @@ var fetchAll = (req, res, next) => {
 
     Enquiry.findAll({
         attributes: ['firstName', 'lastName', 'fatherName', 'enqDate', 'courseId', 'remarks','status']
-    })
-        .then((result) => {
+
+        }).then((result) => {
 
             if (result === null) {
 
@@ -210,8 +213,14 @@ var fetchById = (req, res, next) => {
 
     var id = req.params.id;
 
-    Enquiry.find({ where: { id: id } })
-        .then((result) => {
+    Enquiry.find({ 
+        include: [{
+            model: Course,
+            attributes: ["courseName","fees"],
+            where: { id: id }
+
+        }]
+            }).then((result) => {
             
             if (result === null) {
 
@@ -249,6 +258,7 @@ var isEnquiryIdExistsAlready = ( id, cb ) => {
             cb( { err: error } );
         });
 };
+
 
 
 
